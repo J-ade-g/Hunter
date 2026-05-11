@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html class="light" lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scavenger Hunt Camera</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;family=Hanken+Grotesk:wght@400&amp;family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#000000",
+            background: "#f9f9f9",
+            "tertiary-fixed": "#e2e2e2",
+            "on-tertiary-fixed": "#1b1b1b",
+            "inverse-surface": "#303030",
+            "surface-container-highest": "#e2e2e2",
+            "outline-variant": "#cfc4c5",
+            "secondary-fixed": "#e2e2e2",
+            "on-primary-container": "#848484",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed": "#e2e2e2",
+            "primary-fixed-dim": "#c6c6c6",
+            "on-surface-variant": "#4c4546",
+            "on-tertiary-container": "#848484",
+            "on-surface": "#1b1b1b",
+            "surface-dim": "#dadada",
+            "on-tertiary-fixed-variant": "#474747",
+            "on-primary": "#ffffff",
+            "inverse-primary": "#c6c6c6",
+            "on-secondary-fixed": "#1a1c1c",
+            "on-background": "#1b1b1b",
+            "inverse-on-surface": "#f1f1f1",
+            "surface-bright": "#f9f9f9",
+            surface: "#f9f9f9",
+            "on-primary-fixed-variant": "#474747",
+            secondary: "#5d5f5f",
+            error: "#ba1a1a",
+            "surface-container-low": "#f3f3f3",
+            "surface-container": "#eeeeee",
+            "primary-container": "#1b1b1b",
+            "surface-variant": "#e2e2e2",
+            "tertiary-fixed-dim": "#c6c6c6",
+            "secondary-container": "#dfe0e0",
+            "on-secondary-fixed-variant": "#454747",
+            "on-secondary": "#ffffff",
+            tertiary: "#000000",
+            "on-error-container": "#93000a",
+            "on-primary-fixed": "#1b1b1b",
+            "secondary-fixed-dim": "#c6c6c7",
+            outline: "#7e7576",
+            "surface-container-high": "#e8e8e8",
+            "on-error": "#ffffff",
+            "surface-tint": "#5e5e5e",
+            "on-tertiary": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-secondary-container": "#616363",
+            "tertiary-container": "#1b1b1b"
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+          spacing: { unit: "8px", gutter: "24px", "margin-desktop": "64px", "margin-mobile": "16px", "max-width": "1200px" },
+          fontFamily: {
+            "label-mono": ["JetBrains Mono", "monospace"],
+            "body-sm": ["Hanken Grotesk", "sans-serif"],
+            "headline-md": ["Bricolage Grotesque", "sans-serif"],
+            "body-lg": ["Hanken Grotesk", "sans-serif"],
+            display: ["Bricolage Grotesque", "sans-serif"],
+            "display-lg": ["Bricolage Grotesque", "sans-serif"],
+            "display-lg-mobile": ["Bricolage Grotesque", "sans-serif"]
+          },
+          fontSize: {
+            "label-mono": ["12px", { lineHeight: "1.0", fontWeight: "500" }],
+            "body-sm": ["14px", { lineHeight: "1.5", fontWeight: "400" }],
+            "headline-md": ["32px", { lineHeight: "1.2", fontWeight: "700" }],
+            "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
+            "display-lg": ["80px", { lineHeight: "1.0", letterSpacing: "-0.04em", fontWeight: "800" }],
+            "display-lg-mobile": ["48px", { lineHeight: "1.1", fontWeight: "800" }]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root { --color-primary: #000000; }
+    .sketch-border { border: 3px solid #000; border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; }
+    .sketch-border-thin { border: 2px solid #000; border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; }
+    .hard-shadow { box-shadow: 4px 4px 0px 0px #000; }
+    .hard-shadow-active:active { box-shadow: 2px 2px 0px 0px #000; transform: translate(2px, 2px); }
+    .progress-bar-sketch {
+      background-image: repeating-linear-gradient(45deg, #000, #000 2px, transparent 2px, transparent 6px);
+    }
+    .brutalist-border-thin { border: 2px solid #000000; }
+    .brutalist-shadow { box-shadow: 4px 4px 0px 0px #000000; }
+    .sketch-box { border-radius: 2px 8px 3px 6px / 6px 2px 7px 3px; }
+    .sketch-img { border-radius: 4px 3px 6px 2px / 2px 5px 3px 4px; }
+    .sketch-line { border-bottom: 2px solid #000; border-bottom-left-radius: 5px; border-bottom-right-radius: 3px; }
+    .doodle-border { border: 3px solid var(--color-primary); box-shadow: 6px 6px 0px 0px var(--color-primary); }
+    .doodle-border-light { border: 2px solid var(--color-primary); box-shadow: 4px 4px 0px 0px var(--color-primary); }
+    .doodle-element { position: absolute; z-index: 0; opacity: 0.1; pointer-events: none; }
+    body { min-height: max(884px, 100dvh); }
+    .view-hidden { display: none !important; }
+    #viewfinder-canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .keyword-pop { animation: keyword-pop 0.08s ease-out; }
+    @keyframes keyword-pop {
+      0% { transform: scale(1.06); opacity: 0.85; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    #task-keyword-hero.keyword-spin { letter-spacing: -0.02em; }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-sm overflow-hidden">
+
+  <!-- ========== CAMERA ========== -->
+  <div id="screen-camera" class="flex flex-col min-h-screen flex-1">
+    <header class="bg-white font-headline-md text-headline-md uppercase flex justify-between items-center w-full px-margin-mobile min-h-16 py-2 border-b-4 border-black z-20 relative shrink-0 gap-2 flex-wrap">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="material-symbols-outlined text-primary text-3xl font-bold shrink-0" style="font-variation-settings: 'FILL' 0, 'wght' 700;">draw</span>
+        <span class="font-headline-md text-headline-md font-bold text-primary tracking-tight hidden sm:inline">SCAVENGER HUNT</span>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+        <span id="hdr-session-wins" class="font-label-mono text-[10px] sm:text-[11px] font-bold tracking-wide border-2 border-black px-1.5 py-0.5 sketch-border-thin bg-white whitespace-nowrap">本地胜 0</span>
+        <span id="hdr-global-total" class="font-label-mono text-[10px] sm:text-[11px] font-bold tracking-wide border-2 border-black px-1.5 py-0.5 sketch-border-thin bg-white whitespace-nowrap">全站 0</span>
+        <span id="task-badge" class="font-label-mono text-label-mono font-bold tracking-widest border-2 border-black px-2 py-1 sketch-border-thin hard-shadow bg-white max-w-[38vw] sm:max-w-[200px] truncate">LOADING...</span>
+      </div>
+    </header>
+
+    <main class="flex-grow relative flex flex-col items-center justify-center p-4 bg-gray-100 overflow-hidden min-h-0">
+      <video id="camera-video" class="fixed inset-0 w-full h-full object-cover opacity-0 pointer-events-none" playsinline muted autoplay></video>
+
+      <div class="absolute inset-0 z-0 bg-gray-200">
+        <img id="camera-fallback" alt="" class="w-full h-full object-cover opacity-40 grayscale blur-sm hidden"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcdzpmAKkxYTTloVB56buU4EiNSUwkHZN0rBvZLcd8o_lwjZpfsQugo8QetLGOkAP5UtMoIQXQ8tU5pFXg7TOcKhwPSAzMaWSuwzIxsKZIdjvPnFHRNM11zMC8bzRYlXSRdeKD5WMFpcOpA9_gDsZ3S75WBxAEtZqANAyouseUIVneRE5N36vyBkYSuC_skJ_HDE1sAHJXUvI-9ibx3D_NrxpeZb3Iu-AIsb2k9X5_HWURW4Qj8hiY-VjvnzeIm8GA9XtXbyqHpF8x">
+      </div>
+
+      <!-- Mode + color (doodle controls) -->
+      <div class="relative z-30 w-full max-w-md mb-3 flex flex-col gap-2">
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <button type="button" id="btn-mode-normal" class="mode-btn font-label-mono text-label-mono uppercase px-3 py-2 border-2 border-black sketch-border-thin hard-shadow hard-shadow-active bg-black text-white">Normal</button>
+          <button type="button" id="btn-mode-aesthetic" class="mode-btn font-label-mono text-label-mono uppercase px-3 py-2 border-2 border-black bg-white sketch-border-thin hard-shadow hard-shadow-active">Aesthetic</button>
+        </div>
+        <div class="flex justify-center items-center gap-2">
+          <label for="color-keep" class="font-label-mono text-label-mono uppercase font-bold">保留色</label>
+          <select id="color-keep" class="font-label-mono text-sm border-2 border-black bg-white sketch-border-thin hard-shadow px-2 py-1 max-w-[200px]">
+            <option value="red">红色</option>
+            <option value="yellow">黄色</option>
+            <option value="blue">蓝色</option>
+            <option value="green">绿色</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="relative z-10 w-full max-w-md aspect-[3/4] border-4 border-black flex flex-col justify-between p-4 box-border sketch-border bg-white/90 backdrop-blur-sm min-h-0">
+        <div class="absolute top-4 left-4 w-8 h-8 border-t-4 border-l-4 border-black pointer-events-none"></div>
+        <div class="absolute top-4 right-4 w-8 h-8 border-t-4 border-r-4 border-black pointer-events-none"></div>
+        <div class="absolute bottom-4 left-4 w-8 h-8 border-b-4 border-l-4 border-black pointer-events-none"></div>
+        <div class="absolute bottom-4 right-4 w-8 h-8 border-b-4 border-r-4 border-black pointer-events-none"></div>
+
+        <div class="flex justify-center mt-2 shrink-0">
+          <div class="border-2 border-black bg-white px-4 py-2 sketch-border-thin hard-shadow max-w-[95%]">
+            <p class="font-label-mono text-label-mono font-bold text-center uppercase">Current Target</p>
+            <p id="task-title-hud" class="font-body-sm text-center mt-1 line-clamp-2 text-on-surface-variant">LOADING...</p>
+          </div>
+        </div>
+
+        <div class="shrink-0 px-1 py-2 z-20">
+          <h1 id="task-keyword-hero" class="text-center font-extrabold leading-[0.95] tracking-tighter text-black text-3xl sm:text-5xl md:text-6xl break-words max-h-[28vh] overflow-y-auto" style="text-shadow: rgb(255,255,255) 2px 2px 0, rgb(255,255,255) -2px -2px 0, rgb(255,255,255) 2px -2px 0, rgb(255,255,255) -2px 2px 0;">LOADING...</h1>
+        </div>
+
+        <div class="flex-grow flex items-center justify-center min-h-0 py-1 relative min-h-[120px]">
+          <div class="absolute inset-2 border-2 border-dashed border-black/20 rounded-sm pointer-events-none z-10"></div>
+          <canvas id="viewfinder-canvas" class="relative z-0 max-h-[38vh] w-full object-contain rounded-sm border-2 border-black bg-black"></canvas>
+        </div>
+
+        <div class="mb-4 w-full px-2 shrink-0">
+          <div class="h-4 border-2 border-black w-full bg-white relative sketch-border-thin overflow-hidden">
+            <div id="progress-fill" class="absolute top-0 left-0 h-full w-[30%] progress-bar-sketch border-r-2 border-black"></div>
+          </div>
+          <p id="task-hint-hud" class="font-label-mono text-label-mono text-center mt-2 font-bold uppercase line-clamp-3">LOADING...</p>
+        </div>
+      </div>
+
+      <div class="relative z-20 mt-6 mb-28 md:mb-10 flex flex-col items-center gap-2">
+        <p id="camera-status" class="font-label-mono text-xs text-center text-on-surface-variant max-w-md px-2"></p>
+        <button type="button" id="btn-capture" class="w-24 h-24 rounded-full border-4 border-black bg-white flex items-center justify-center hard-shadow hard-shadow-active transition-transform group relative disabled:opacity-50">
+          <div class="w-20 h-20 rounded-full border-2 border-black group-hover:bg-black transition-colors flex items-center justify-center">
+            <div class="w-16 h-16 rounded-full border-2 border-black border-dashed group-hover:border-white opacity-50 group-hover:opacity-100 transition-all group-active:scale-90"></div>
+          </div>
+          <span class="absolute -bottom-8 font-label-mono text-label-mono font-bold uppercase tracking-widest text-black bg-white px-2 py-1 border-2 border-black sketch-border-thin">CAPTURE</span>
+        </button>
+      </div>
+    </main>
+
+    <nav class="fixed bottom-0 w-full z-50 border-t-4 border-black flex justify-around items-center py-4 bg-white md:hidden">
+      <button type="button" data-nav="camera" class="nav-tab flex items-center justify-center bg-black text-white p-2 border-2 border-black flex-col gap-1 hard-shadow sketch-border-thin scale-110 -translate-y-2" aria-current="page">
+        <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1, 'wght' 700;">photo_camera</span>
+      </button>
+      <button type="button" data-nav="history" class="nav-tab flex items-center justify-center text-primary opacity-40 p-2 hover:opacity-100 flex-col gap-1">
+        <span class="material-symbols-outlined text-3xl">list_alt</span>
+      </button>
+      <button type="button" data-nav="rank" class="nav-tab flex items-center justify-center text-primary opacity-40 p-2 hover:opacity-100 flex-col gap-1">
+        <span class="material-symbols-outlined text-3xl">leaderboard</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ========== LEADERBOARD ========== -->
+  <div id="screen-rank" class="view-hidden flex flex-col min-h-screen bg-background text-primary font-body-lg">
+    <header class="bg-background text-primary font-headline-md text-headline-md uppercase flex justify-between items-center w-full px-margin-mobile h-16 shrink-0 z-40 relative brutalist-shadow border-b-[3px] border-primary">
+      <div class="flex items-center gap-unit">
+        <span class="material-symbols-outlined text-[32px] font-bold">leaderboard</span>
+        <span class="font-headline-md text-headline-md font-bold tracking-tight">RANK</span>
+      </div>
+    </header>
+    <main class="flex-grow flex flex-col items-center pt-8 pb-32 px-margin-mobile max-w-max-width mx-auto w-full overflow-y-auto">
+      <p class="font-label-mono text-label-mono text-on-surface-variant uppercase mb-6 text-center">关键词通关次数 TOP</p>
+      <ol id="rank-list" class="w-full max-w-md border-4 border-primary brutalist-border-thin sketch-box brutalist-shadow divide-y-2 divide-primary bg-surface-container-lowest"></ol>
+    </main>
+    <nav class="md:hidden flex justify-around items-center w-full py-4 bg-background font-label-mono text-primary fixed bottom-0 z-50 border-t-[3px] border-primary">
+      <button type="button" data-nav="camera" class="nav-tab flex items-center justify-center text-primary opacity-40 p-2 flex-col gap-1">
+        <span class="material-symbols-outlined text-[24px]">photo_camera</span>
+      </button>
+      <button type="button" data-nav="history" class="nav-tab flex items-center justify-center text-primary opacity-40 p-2 flex-col gap-1">
+        <span class="material-symbols-outlined text-[24px]">list_alt</span>
+      </button>
+      <button type="button" data-nav="rank" class="nav-tab flex items-center justify-center bg-primary text-on-primary p-2 border-2 border-primary brutalist-shadow flex-col gap-1">
+        <span class="material-symbols-outlined text-[24px]">leaderboard</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ========== HISTORY ========== -->
+  <div id="screen-history" class="view-hidden flex flex-col min-h-screen bg-background text-primary font-body-lg">
+    <header class="bg-background text-primary font-headline-md text-headline-md uppercase flex justify-between items-center w-full px-margin-mobile h-16 shrink-0 z-40 relative brutalist-shadow border-b-[3px] border-primary">
+      <div class="flex items-center gap-unit">
+        <span class="material-symbols-outlined text-[32px] font-bold">draw</span>
+        <span class="font-headline-md text-headline-md font-bold tracking-tight">SCAVENGER HUNT</span>
+      </div>
+    </header>
+    <main class="flex-grow flex flex-col items-center pt-12 pb-32 px-margin-mobile max-w-max-width mx-auto w-full overflow-y-auto">
+      <div class="mb-12 text-center">
+        <h1 class="font-display-lg-mobile md:font-display-lg text-primary uppercase sketch-line inline-block pb-2 mb-4 tracking-tighter">HISTORY</h1>
+        <p class="font-label-mono text-label-mono text-on-surface-variant uppercase mt-4">Past Discoveries Log</p>
+      </div>
+      <p id="history-empty" class="hidden text-center font-label-mono text-on-surface-variant uppercase py-8">暂无寻宝记录</p>
+      <div id="history-list" class="grid grid-cols-1 sm:grid-cols-2 gap-gutter w-full"></div>
+    </main>
+    <nav class="md:hidden flex justify-around items-center w-full py-4 bg-background font-label-mono text-primary fixed bottom-0 z-50 border-t-[3px] border-primary">
+      <button type="button" data-nav="camera" class="nav-tab flex items-center justify-center text-primary opacity-40 p-2 flex-col gap-1">
+        <span class="material-symbols-outlined text-[24px]">photo_camera</span>
+      </button>
+      <button type="button" data-nav="history" class="nav-tab flex items-center justify-center bg-primary text-on-primary p-2 border-2 border-primary brutalist-shadow flex-col gap-1">
+        <span class="material-symbols-outlined text-[24px]">list_alt</span>
+      </button>
+      <button type="button" data-nav="rank" class="nav-tab flex items-center justify-center text-primary opacity-40 p-2 flex-col gap-1">
+        <span class="material-symbols-outlined text-[24px]">leaderboard</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ========== SUCCESS ========== -->
+  <div id="screen-success" class="view-hidden fixed inset-0 z-[200] bg-background text-on-background min-h-screen flex flex-col justify-center items-center overflow-y-auto py-8">
+    <svg class="doodle-element top-10 left-10 w-32 h-32 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 100 100"><path d="M10 50 Q 25 10 50 50 T 90 50"/><path d="M20 20 L 40 40"/><circle cx="80" cy="20" r="5"/></svg>
+    <svg class="doodle-element bottom-20 right-10 w-48 h-48 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 100 100"><rect height="80" width="80" x="10" y="10" transform="rotate(5 50 50)"/><line x1="10" x2="90" y1="50" y2="50"/><line x1="50" x2="50" y1="10" y2="90"/></svg>
+
+    <main class="w-full max-w-max-width px-margin-mobile flex flex-col items-center justify-center text-center z-10 relative">
+      <div class="mb-gutter doodle-border-light bg-surface-container-lowest p-6 rounded-full inline-flex items-center justify-center">
+        <span class="material-symbols-outlined text-[80px] text-primary" style="font-variation-settings: 'FILL' 1, 'wght' 700;">check</span>
+      </div>
+      <h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-unit tracking-tighter uppercase">SUCCESS!</h1>
+      <div class="mb-4 max-w-md w-full mx-auto doodle-border-light bg-surface-container-lowest p-2 sketch-img overflow-hidden border-4 border-black">
+        <img id="success-thumb" alt="本局定格" class="w-full max-h-56 object-cover grayscale contrast-110" width="800" height="600">
+      </div>
+      <p id="success-keyword-recap" class="font-label-mono text-label-mono uppercase text-on-surface-variant mb-4 max-w-lg"></p>
+      <div class="mb-6 max-w-lg w-full doodle-border bg-surface-container-lowest px-6 py-4 transform -rotate-1 text-left">
+        <p class="font-label-mono text-label-mono uppercase text-on-surface-variant mb-2">判官评语</p>
+        <p id="success-reason" class="font-body-lg text-primary whitespace-pre-wrap break-words"></p>
+      </div>
+      <button type="button" id="btn-success-back" class="doodle-border bg-surface-container-lowest text-primary font-label-mono text-label-mono px-8 py-4 uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-colors duration-200 active:translate-y-1 active:translate-x-1">
+        GO BACK
+      </button>
+    </main>
+  </div>
+
+  <!-- ========== FAIL / FEEDBACK ========== -->
+  <div id="screen-fail" class="view-hidden fixed inset-0 z-[200] bg-background text-on-background min-h-screen flex flex-col justify-center items-center overflow-y-auto py-8">
+    <main class="w-full max-w-max-width px-margin-mobile flex flex-col items-center justify-center text-center z-10 relative">
+      <div class="mb-4 doodle-border-light bg-error-container p-5 rounded-full inline-flex items-center justify-center">
+        <span class="material-symbols-outlined text-[72px] text-error" style="font-variation-settings: 'FILL' 1, 'wght' 700;">sentiment_dissatisfied</span>
+      </div>
+      <h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-unit tracking-tighter uppercase">NOT QUITE</h1>
+      <div class="mb-4 max-w-md w-full mx-auto doodle-border-light bg-surface-container-lowest p-2 sketch-img overflow-hidden border-4 border-black">
+        <img id="fail-thumb" alt="本局定格" class="w-full max-h-56 object-cover grayscale contrast-110" width="800" height="600">
+      </div>
+      <p id="fail-keyword-recap" class="font-label-mono text-label-mono uppercase text-on-surface-variant mb-4 max-w-lg"></p>
+      <div class="mb-6 max-w-lg w-full doodle-border bg-surface-container-lowest px-6 py-4 text-left">
+        <p class="font-label-mono text-label-mono uppercase text-on-surface-variant mb-2">判官吐槽</p>
+        <p id="fail-reason" class="font-body-lg text-primary whitespace-pre-wrap break-words"></p>
+      </div>
+      <button type="button" id="btn-fail-back" class="doodle-border bg-surface-container-lowest text-primary font-label-mono text-label-mono px-8 py-4 uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-colors duration-200 active:translate-y-1 active:translate-x-1">
+        TRY AGAIN
+      </button>
+    </main>
+  </div>
+
+  <!-- Raw capture (never shown; full-color for API) -->
+  <canvas id="raw-canvas" class="hidden" width="2" height="2" aria-hidden="true"></canvas>
+
+  <script>
+(function () {
+  function whenDomReady(fn) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fn, { once: true });
+    } else {
+      fn();
+    }
+  }
+
+  const video = document.getElementById("camera-video");
+  const canvas = document.getElementById("viewfinder-canvas");
+  const rawCanvas = document.getElementById("raw-canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const rawCtx = rawCanvas.getContext("2d");
+  const btnCapture = document.getElementById("btn-capture");
+  const elBadge = document.getElementById("task-badge");
+  const elTitleHud = document.getElementById("task-title-hud");
+  const elHintHud = document.getElementById("task-hint-hud");
+  const elKeywordHero = document.getElementById("task-keyword-hero");
+  const elStatus = document.getElementById("camera-status");
+  const fallbackImg = document.getElementById("camera-fallback");
+  const btnNormal = document.getElementById("btn-mode-normal");
+  const btnAesthetic = document.getElementById("btn-mode-aesthetic");
+  const colorSelect = document.getElementById("color-keep");
+  const screenCamera = document.getElementById("screen-camera");
+  const screenHistory = document.getElementById("screen-history");
+  const screenRank = document.getElementById("screen-rank");
+  const screenSuccess = document.getElementById("screen-success");
+  const screenFail = document.getElementById("screen-fail");
+  const successReason = document.getElementById("success-reason");
+  const successThumb = document.getElementById("success-thumb");
+  const successKeywordRecap = document.getElementById("success-keyword-recap");
+  const btnSuccessBack = document.getElementById("btn-success-back");
+  const failReason = document.getElementById("fail-reason");
+  const failThumb = document.getElementById("fail-thumb");
+  const failKeywordRecap = document.getElementById("fail-keyword-recap");
+  const btnFailBack = document.getElementById("btn-fail-back");
+  const rankList = document.getElementById("rank-list");
+  const hdrSessionWins = document.getElementById("hdr-session-wins");
+  const hdrGlobalTotal = document.getElementById("hdr-global-total");
+  const historyList = document.getElementById("history-list");
+  const historyEmpty = document.getElementById("history-empty");
+
+  const LS_WINS = "treasure_hunt_session_wins";
+  /** 老虎机滚动用的诱饵词（勿含当前任务词亦可） */
+  const KEYWORD_DECOY_POOL = [
+    "下班",
+    "灵魂解放",
+    "citywalk",
+    "松弛感",
+    "泰裤辣",
+    "显眼包",
+    "遥遥领先",
+    "主打陪伴",
+    "精神状态",
+    "氛围感拉满",
+    "一键查询",
+    "职场文学",
+    "摸鱼",
+    "治愈系",
+    "随手拍大片",
+    "人间烟火",
+    "复古ccd",
+    "情绪价值",
+    "搭子",
+    "绝绝子"
+  ];
+
+  let keywordRouletteTimer = null;
+  let lastCaptureDataUrl = "";
+
+  function getSessionWins() {
+    try {
+      const n = parseInt(localStorage.getItem(LS_WINS) || "0", 10);
+      return Number.isFinite(n) && n >= 0 ? n : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function setSessionWins(n) {
+    try {
+      localStorage.setItem(LS_WINS, String(Math.max(0, n)));
+    } catch (_) {}
+    if (hdrSessionWins) hdrSessionWins.textContent = "本地胜 " + getSessionWins();
+  }
+
+  function bumpSessionWins() {
+    setSessionWins(getSessionWins() + 1);
+  }
+
+  async function loadStats() {
+    if (hdrGlobalTotal) {
+      hdrGlobalTotal.textContent = "全站 …";
+    }
+    try {
+      const res = await fetch("/api/stats", { cache: "no-store" });
+      const data = await res.json().catch(function () {
+        return {};
+      });
+      if (res.ok && data.totalMatches != null && hdrGlobalTotal) {
+        hdrGlobalTotal.textContent = "全站 " + data.totalMatches;
+      } else if (hdrGlobalTotal) {
+        hdrGlobalTotal.textContent = "全站 —";
+      }
+    } catch (_) {
+      if (hdrGlobalTotal) hdrGlobalTotal.textContent = "全站 —";
+    }
+    if (hdrSessionWins) hdrSessionWins.textContent = "本地胜 " + getSessionWins();
+  }
+
+  function stopKeywordRoulette() {
+    if (keywordRouletteTimer != null) {
+      clearInterval(keywordRouletteTimer);
+      keywordRouletteTimer = null;
+    }
+    elKeywordHero.classList.remove("keyword-spin");
+  }
+
+  /**
+   * 快速滚动多个诱饵词后停在 finalKeyword
+   */
+  function runKeywordRoulette(finalKeyword, onDone) {
+    stopKeywordRoulette();
+    const finalKw = String(finalKeyword || "").trim() || "—";
+    const pool = KEYWORD_DECOY_POOL.filter(function (k) {
+      return k !== finalKw;
+    });
+    if (pool.length === 0) {
+      elKeywordHero.textContent = finalKw;
+      if (typeof onDone === "function") onDone();
+      return;
+    }
+    let ticks = 0;
+    const maxTicks = 26 + Math.floor(Math.random() * 8);
+    elKeywordHero.classList.add("keyword-spin");
+    keywordRouletteTimer = setInterval(function () {
+      ticks++;
+      if (ticks >= maxTicks) {
+        stopKeywordRoulette();
+        elKeywordHero.textContent = finalKw;
+        elKeywordHero.classList.add("keyword-pop");
+        setTimeout(function () {
+          elKeywordHero.classList.remove("keyword-pop");
+        }, 120);
+        if (typeof onDone === "function") onDone();
+        return;
+      }
+      const r = pool[Math.floor(Math.random() * pool.length)];
+      elKeywordHero.textContent = ticks > maxTicks - 4 && Math.random() > 0.65 ? finalKw : r;
+      elKeywordHero.classList.toggle("keyword-pop", ticks % 3 === 0);
+      setTimeout(function () {
+        elKeywordHero.classList.remove("keyword-pop");
+      }, 90);
+    }, 52);
+  }
+
+  const COLOR_PRESETS = {
+    red: { hueMin: 0, hueMax: 18, wrapHigh: true },
+    yellow: { hueMin: 45, hueMax: 72 },
+    blue: { hueMin: 200, hueMax: 260 },
+    green: { hueMin: 85, hueMax: 155 }
+  };
+
+  let mode = "normal";
+  let currentTask = null;
+  let rafId = null;
+  const SAT_MIN = 0.14;
+  const CONTRAST = 1.25;
+
+  function inHueRange(h, preset) {
+    if (preset.wrapHigh) return h <= preset.hueMax || h >= 342;
+    return h >= preset.hueMin && h <= preset.hueMax;
+  }
+
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    const d = max - min;
+    if (d > 1e-6) {
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        default: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    return { h: h * 360, s, l };
+  }
+
+  function applyColorSplash(imageData, presetKey) {
+    const preset = COLOR_PRESETS[presetKey] || COLOR_PRESETS.red;
+    const d = imageData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      const { h, s, l } = rgbToHsl(r, g, b);
+      const keep = s >= SAT_MIN && inHueRange(h, preset);
+      if (keep) continue;
+      let y = 0.299 * r + 0.587 * g + 0.114 * b;
+      y = (y / 255 - 0.5) * CONTRAST + 0.5;
+      y = Math.max(0, Math.min(255, Math.round(y * 255)));
+      d[i] = d[i + 1] = d[i + 2] = y;
+    }
+  }
+
+  function resizeCanvasToVideo() {
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    if (!vw || !vh) return;
+    const maxW = 520;
+    let cw = Math.min(vw, maxW);
+    let ch = Math.round((vh / vw) * cw);
+    if (canvas.width !== cw || canvas.height !== ch) {
+      canvas.width = cw;
+      canvas.height = ch;
+    }
+  }
+
+  function drawFrame() {
+    if (!video.videoWidth) {
+      rafId = requestAnimationFrame(drawFrame);
+      return;
+    }
+    resizeCanvasToVideo();
+    const cw = canvas.width;
+    const ch = canvas.height;
+    if (!cw || !ch) {
+      rafId = requestAnimationFrame(drawFrame);
+      return;
+    }
+    ctx.drawImage(video, 0, 0, cw, ch);
+    if (mode === "aesthetic") {
+      const img = ctx.getImageData(0, 0, cw, ch);
+      applyColorSplash(img, colorSelect.value);
+      ctx.putImageData(img, 0, 0);
+    }
+    rafId = requestAnimationFrame(drawFrame);
+  }
+
+  function setMode(next) {
+    mode = next;
+    const onA = next === "aesthetic";
+    btnNormal.classList.toggle("bg-black", !onA);
+    btnNormal.classList.toggle("text-white", !onA);
+    btnNormal.classList.toggle("bg-white", onA);
+    btnNormal.classList.toggle("text-black", onA);
+    btnAesthetic.classList.toggle("bg-black", onA);
+    btnAesthetic.classList.toggle("text-white", onA);
+    btnAesthetic.classList.toggle("bg-white", !onA);
+    btnAesthetic.classList.toggle("text-black", !onA);
+    colorSelect.disabled = !onA;
+  }
+
+  btnNormal.addEventListener("click", function () { setMode("normal"); });
+  btnAesthetic.addEventListener("click", function () { setMode("aesthetic"); });
+  setMode("normal");
+
+  function captureRawJpegBase64() {
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    if (!vw || !vh) throw new Error("摄像头未就绪");
+    rawCanvas.width = vw;
+    rawCanvas.height = vh;
+    rawCtx.drawImage(video, 0, 0, vw, vh);
+    return rawCanvas.toDataURL("image/jpeg", 0.92);
+  }
+
+  function setTaskLoadingUI() {
+    stopKeywordRoulette();
+    currentTask = null;
+    elKeywordHero.textContent = "LOADING...";
+    elTitleHud.textContent = "LOADING...";
+    elHintHud.textContent = "LOADING...";
+    elBadge.textContent = "LOADING...";
+    btnCapture.disabled = true;
+  }
+
+  async function loadTask() {
+    setTaskLoadingUI();
+    elStatus.textContent = "正在请求 /api/task …";
+    try {
+      const res = await fetch("/api/task", { cache: "no-store" });
+      const data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(data.error || data.detail || "获取任务失败");
+      currentTask = data;
+      elBadge.textContent = String(data.title || "TASK").toUpperCase();
+      elTitleHud.textContent = data.title != null && String(data.title).trim() !== "" ? String(data.title) : "—";
+      const kw =
+        data.keyword != null && String(data.keyword).trim() !== ""
+          ? String(data.keyword).trim()
+          : "—";
+      const hintRaw = data.hint != null ? String(data.hint).trim() : "";
+      elHintHud.textContent = hintRaw !== "" ? "HINT: " + hintRaw : "HINT: （无）";
+      elStatus.textContent = "";
+      btnCapture.disabled = true;
+      runKeywordRoulette(kw, function () {
+        btnCapture.disabled = false;
+      });
+    } catch (e) {
+      elBadge.textContent = "ERR";
+      elTitleHud.textContent = e.message || String(e);
+      elKeywordHero.textContent = "FAILED";
+      elHintHud.textContent = "HINT: 请检查后端与 Supabase";
+      elStatus.textContent = "";
+    }
+  }
+
+  async function startCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      fallbackImg.classList.remove("hidden");
+      elStatus.textContent = "不支持摄像头 API";
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false
+      });
+      video.srcObject = stream;
+      await video.play().catch(function () {});
+      fallbackImg.classList.add("hidden");
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(drawFrame);
+    } catch (e) {
+      console.warn(e);
+      fallbackImg.classList.remove("hidden");
+      elStatus.textContent = "摄像头不可用：" + (e.message || "拒绝授权");
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(function loop() {
+        if (video.videoWidth) resizeCanvasToVideo();
+        rafId = requestAnimationFrame(loop);
+      });
+    }
+  }
+
+  function openFailFeedback(reasonText) {
+    if (failReason) failReason.textContent = reasonText || "";
+    if (failKeywordRecap && currentTask) {
+      failKeywordRecap.textContent = "任务词 · " + String(currentTask.keyword || "—");
+    }
+    if (failThumb && lastCaptureDataUrl) {
+      failThumb.src = lastCaptureDataUrl;
+    }
+    screenFail.classList.remove("view-hidden");
+  }
+
+  btnCapture.addEventListener("click", async function () {
+    if (!currentTask || !currentTask.keyword) {
+      elStatus.textContent = "没有有效任务，请稍候任务加载完成或刷新页面。";
+      return;
+    }
+    let imageBase64;
+    try {
+      imageBase64 = captureRawJpegBase64();
+    } catch (e) {
+      elStatus.textContent = e.message || String(e);
+      return;
+    }
+    lastCaptureDataUrl = imageBase64;
+    btnCapture.disabled = true;
+    try {
+      const payload = {
+        keyword: String(currentTask.keyword),
+        hint: currentTask.hint != null ? String(currentTask.hint) : "",
+        imageBase64: imageBase64,
+        taskId: currentTask.id
+      };
+      const json = JSON.stringify(payload);
+      const res = await fetch("/api/identify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json;charset=UTF-8" },
+        body: new Blob([json], { type: "application/json;charset=UTF-8" })
+      });
+      const data = await res.json().catch(function () { return {}; });
+      if (!res.ok) {
+        openFailFeedback(data.error || "识别失败");
+        return;
+      }
+      if (data.match === true) {
+        if (successThumb && lastCaptureDataUrl) {
+          successThumb.src = lastCaptureDataUrl;
+        }
+        if (successKeywordRecap) {
+          successKeywordRecap.textContent = "任务词 · " + String(currentTask.keyword || "—");
+        }
+        successReason.textContent = typeof data.reason === "string" ? data.reason : "";
+        bumpSessionWins();
+        loadStats();
+        screenSuccess.classList.remove("view-hidden");
+      } else {
+        openFailFeedback(typeof data.reason === "string" ? data.reason : "未匹配，再试一张？");
+      }
+    } catch (e) {
+      openFailFeedback(e.message || String(e));
+    } finally {
+      btnCapture.disabled = false;
+    }
+  });
+
+  btnSuccessBack.addEventListener("click", function () {
+    screenSuccess.classList.add("view-hidden");
+    loadTask();
+    loadStats();
+    loadScores();
+  });
+
+  btnFailBack.addEventListener("click", function () {
+    screenFail.classList.add("view-hidden");
+  });
+
+  function escapeHtml(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  async function loadScores() {
+    if (!historyList || !historyEmpty) return;
+    historyList.innerHTML =
+      '<p class="col-span-full text-center font-label-mono text-on-surface-variant py-8">加载中…</p>';
+    historyEmpty.classList.add("hidden");
+    try {
+      const res = await fetch("/api/scores?limit=30", { cache: "no-store" });
+      const data = await res.json().catch(function () {
+        return {};
+      });
+      if (!res.ok) throw new Error(data.error || data.detail || "加载失败");
+      const items = data.items || [];
+      historyList.innerHTML = "";
+      if (!items.length) {
+        historyEmpty.classList.remove("hidden");
+        return;
+      }
+      historyEmpty.classList.add("hidden");
+      items.forEach(function (item, idx) {
+        const article = document.createElement("article");
+        article.className =
+          "bg-surface-container-lowest brutalist-border-thin sketch-box brutalist-shadow p-4 flex flex-col gap-4" +
+          (idx % 2 === 1 ? " sm:mt-8" : "");
+        const title = item.task_title || item.keyword || "—";
+        const dateStr =
+          item.created_at != null ? new Date(item.created_at).toLocaleDateString("zh-CN") : "";
+        const reason =
+          item.reason != null && String(item.reason).trim() !== ""
+            ? String(item.reason).slice(0, 160)
+            : String(item.keyword || "");
+        article.innerHTML =
+          '<div class="w-full aspect-square border-2 border-primary sketch-img overflow-hidden bg-surface-container flex items-center justify-center p-4">' +
+          '<p class="font-body-sm text-center text-on-surface-variant line-clamp-8">' +
+          escapeHtml(reason) +
+          "</p></div>" +
+          '<div class="flex flex-col gap-1 items-center text-center mt-2">' +
+          '<h2 class="font-headline-md text-[24px] font-bold leading-tight uppercase">' +
+          escapeHtml(title) +
+          "</h2>" +
+          '<p class="font-label-mono text-label-mono text-on-surface-variant">' +
+          (dateStr !== "" ? "FOUND: " + escapeHtml(dateStr) : "") +
+          "</p></div>";
+        historyList.appendChild(article);
+      });
+    } catch (e) {
+      historyEmpty.classList.add("hidden");
+      historyList.innerHTML =
+        '<p class="col-span-full text-center font-label-mono text-error">' +
+        escapeHtml(e.message || String(e)) +
+        "</p>";
+    }
+  }
+
+  async function loadLeaderboard() {
+    if (!rankList) return;
+    rankList.innerHTML =
+      '<li class="px-4 py-4 text-center font-label-mono text-on-surface-variant">加载中…</li>';
+    try {
+      const res = await fetch("/api/leaderboard?limit=15", { cache: "no-store" });
+      const data = await res.json().catch(function () {
+        return {};
+      });
+      if (!res.ok) throw new Error(data.error || data.detail || "读取失败");
+      const items = data.items || [];
+      rankList.innerHTML = "";
+      if (!items.length) {
+        rankList.innerHTML =
+          '<li class="px-4 py-8 text-center font-label-mono text-on-surface-variant">暂无通关数据</li>';
+        return;
+      }
+      items.forEach(function (row, i) {
+        const li = document.createElement("li");
+        li.className =
+          "px-4 py-3 flex justify-between items-baseline gap-3 font-body-sm border-b-2 border-primary/10";
+        li.innerHTML =
+          '<span class="font-label-mono text-label-mono text-on-surface-variant w-8 shrink-0">' +
+          (i + 1) +
+          "</span>" +
+          '<span class="text-left flex-1 min-w-0 break-words">' +
+          escapeHtml(String(row.keyword || "")) +
+          "</span>" +
+          '<span class="font-label-mono text-label-mono font-bold shrink-0">' +
+          row.count +
+          " 次</span>";
+        rankList.appendChild(li);
+      });
+    } catch (e) {
+      rankList.innerHTML =
+        '<li class="px-4 py-4 text-center font-label-mono text-error">' +
+        escapeHtml(e.message || String(e)) +
+        "</li>";
+    }
+  }
+
+  function syncNavForScreen(activeNav) {
+    document.querySelectorAll("#screen-camera .nav-tab").forEach(function (btn) {
+      const nav = btn.getAttribute("data-nav");
+      const active = nav === activeNav;
+      if (nav === "camera") {
+        btn.classList.toggle("bg-black", active);
+        btn.classList.toggle("text-white", active);
+        btn.classList.toggle("hard-shadow", active);
+        btn.classList.toggle("sketch-border-thin", active);
+        btn.classList.toggle("scale-110", active);
+        btn.classList.toggle("-translate-y-2", active);
+        btn.classList.toggle("opacity-40", !active);
+      } else {
+        btn.classList.toggle("bg-primary", active);
+        btn.classList.toggle("text-on-primary", active);
+        btn.classList.toggle("border-2", active);
+        btn.classList.toggle("border-primary", active);
+        btn.classList.toggle("brutalist-shadow", active);
+        btn.classList.toggle("opacity-40", !active);
+      }
+    });
+    ["#screen-history .nav-tab", "#screen-rank .nav-tab"].forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (btn) {
+        const nav = btn.getAttribute("data-nav");
+        const active = nav === activeNav;
+        const pill = nav === "history" || nav === "rank";
+        btn.classList.toggle("bg-primary", active && pill);
+        btn.classList.toggle("text-on-primary", active && pill);
+        btn.classList.toggle("border-2", active && pill);
+        btn.classList.toggle("border-primary", active && pill);
+        btn.classList.toggle("brutalist-shadow", active && pill);
+        btn.classList.toggle("opacity-40", !active);
+      });
+    });
+  }
+
+  function showView(name) {
+    const cam = name === "camera";
+    const hist = name === "history";
+    const rank = name === "rank";
+    screenCamera.classList.toggle("view-hidden", !cam);
+    screenHistory.classList.toggle("view-hidden", !hist);
+    screenRank.classList.toggle("view-hidden", !rank);
+    let navKey = "camera";
+    if (hist) navKey = "history";
+    if (rank) navKey = "rank";
+    syncNavForScreen(navKey);
+  }
+
+  document.querySelectorAll(".nav-tab").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const nav = btn.getAttribute("data-nav");
+      if (nav === "camera") showView("camera");
+      if (nav === "history") {
+        showView("history");
+        loadScores();
+      }
+      if (nav === "rank") {
+        showView("rank");
+        loadLeaderboard();
+      }
+    });
+  });
+
+  whenDomReady(function () {
+    loadTask();
+    startCamera();
+    loadScores();
+    loadStats();
+  });
+})();
+  </script>
+</body>
+</html>
