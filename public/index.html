@@ -101,7 +101,7 @@
     .doodle-border { border: 3px solid var(--color-primary); box-shadow: 6px 6px 0px 0px var(--color-primary); }
     .doodle-border-light { border: 2px solid var(--color-primary); box-shadow: 4px 4px 0px 0px var(--color-primary); }
     .doodle-element { position: absolute; z-index: 0; opacity: 0.1; pointer-events: none; }
-    body { min-height: max(884px, 100dvh); }
+    body { height: 100dvh; max-height: 100dvh; }
     .view-hidden { display: none !important; }
     #viewfinder-canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
     .keyword-pop { animation: keyword-pop 0.08s ease-out; }
@@ -112,7 +112,7 @@
     #task-keyword-hero.keyword-spin { letter-spacing: -0.02em; }
   </style>
 </head>
-<body class="bg-background text-on-background min-h-screen flex flex-col font-body-sm overflow-hidden">
+<body class="bg-background text-on-background h-dvh flex flex-col font-body-sm overflow-hidden">
 
   <!-- ========== NICKNAME MODAL ========== -->
   <div id="modal-nickname" class="view-hidden fixed inset-0 z-[300] bg-black/60 flex items-center justify-center px-6">
@@ -125,7 +125,7 @@
   </div>
 
   <!-- ========== CAMERA ========== -->
-  <div id="screen-camera" class="flex flex-col min-h-screen flex-1">
+  <div id="screen-camera" class="flex flex-col h-full flex-1 min-h-0">
     <header class="bg-white font-headline-md text-headline-md uppercase flex justify-between items-center w-full px-margin-mobile min-h-16 py-2 border-b-4 border-black z-20 relative shrink-0 gap-2 flex-wrap">
       <div class="flex items-center gap-2 min-w-0">
         <span class="material-symbols-outlined text-primary text-3xl font-bold shrink-0" style="font-variation-settings: 'FILL' 0, 'wght' 700;">draw</span>
@@ -138,7 +138,7 @@
       </div>
     </header>
 
-    <main class="flex-grow relative flex flex-col items-center justify-start pt-2 px-3 pb-[72px] bg-gray-100 overflow-hidden min-h-0">
+    <main class="flex-grow relative flex flex-col items-center justify-start pt-2 px-3 pb-[72px] bg-gray-100 overflow-y-auto min-h-0">
       <video id="camera-video" class="fixed inset-0 w-full h-full object-cover opacity-0 pointer-events-none" playsinline muted autoplay></video>
 
       <div class="absolute inset-0 z-0 bg-gray-200">
@@ -159,8 +159,8 @@
         </select>
       </div>
 
-      <!-- Viewfinder box: flex-1 fills remaining space, capture row inside -->
-      <div class="relative z-10 w-full max-w-md flex-1 min-h-0 border-4 border-black flex flex-col p-3 box-border sketch-border bg-white/90 backdrop-blur-sm">
+      <!-- Viewfinder box: grows to fill remaining space -->
+      <div class="relative z-10 w-full max-w-md flex-grow min-h-0 border-4 border-black flex flex-col p-3 box-border sketch-border bg-white/90 backdrop-blur-sm">
         <div class="absolute top-3 left-3 w-6 h-6 border-t-4 border-l-4 border-black pointer-events-none"></div>
         <div class="absolute top-3 right-3 w-6 h-6 border-t-4 border-r-4 border-black pointer-events-none"></div>
         <div class="absolute bottom-3 left-3 w-6 h-6 border-b-4 border-l-4 border-black pointer-events-none"></div>
@@ -177,7 +177,7 @@
           <h1 id="task-keyword-hero" class="text-center font-extrabold leading-[0.95] tracking-tighter text-black text-3xl sm:text-5xl break-words" style="text-shadow: rgb(255,255,255) 2px 2px 0, rgb(255,255,255) -2px -2px 0, rgb(255,255,255) 2px -2px 0, rgb(255,255,255) -2px 2px 0;">LOADING...</h1>
         </div>
 
-        <div class="flex-grow flex items-center justify-center min-h-0 py-1 relative">
+        <div class="flex-grow flex items-center justify-center min-h-[120px] py-1 relative">
           <div class="absolute inset-2 border-2 border-dashed border-black/20 rounded-sm pointer-events-none z-10"></div>
           <canvas id="viewfinder-canvas" class="relative z-0 h-full w-full object-contain rounded-sm border-2 border-black bg-black"></canvas>
         </div>
