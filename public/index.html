@@ -183,14 +183,20 @@
         </div>
       </div>
 
-      <div class="relative z-20 mt-6 mb-28 md:mb-10 flex flex-col items-center gap-2">
+      <div class="fixed bottom-[72px] left-0 right-0 z-40 flex flex-col items-center gap-2">
         <p id="camera-status" class="font-label-mono text-xs text-center text-on-surface-variant max-w-md px-2"></p>
-        <button type="button" id="btn-capture" class="w-24 h-24 rounded-full border-4 border-black bg-white flex items-center justify-center hard-shadow hard-shadow-active transition-transform group relative disabled:opacity-50">
-          <div class="w-20 h-20 rounded-full border-2 border-black group-hover:bg-black transition-colors flex items-center justify-center">
-            <div class="w-16 h-16 rounded-full border-2 border-black border-dashed group-hover:border-white opacity-50 group-hover:opacity-100 transition-all group-active:scale-90"></div>
-          </div>
-          <span class="absolute -bottom-8 font-label-mono text-label-mono font-bold uppercase tracking-widest text-black bg-white px-2 py-1 border-2 border-black sketch-border-thin">CAPTURE</span>
-        </button>
+        <div class="flex items-center gap-6">
+          <button type="button" id="btn-flip" class="w-12 h-12 rounded-full border-2 border-black bg-white flex items-center justify-center hard-shadow hard-shadow-active transition-transform active:scale-95" title="翻转镜头">
+            <span class="material-symbols-outlined text-2xl">flip_camera_ios</span>
+          </button>
+          <button type="button" id="btn-capture" class="w-24 h-24 rounded-full border-4 border-black bg-white flex items-center justify-center hard-shadow hard-shadow-active transition-transform group relative disabled:opacity-50">
+            <div class="w-20 h-20 rounded-full border-2 border-black group-hover:bg-black transition-colors flex items-center justify-center">
+              <div class="w-16 h-16 rounded-full border-2 border-black border-dashed group-hover:border-white opacity-50 group-hover:opacity-100 transition-all group-active:scale-90"></div>
+            </div>
+            <span class="absolute -bottom-8 font-label-mono text-label-mono font-bold uppercase tracking-widest text-black bg-white px-2 py-1 border-2 border-black sketch-border-thin">CAPTURE</span>
+          </button>
+          <div class="w-12 h-12"></div>
+        </div>
       </div>
     </main>
 
@@ -619,15 +625,21 @@
     }
   }
 
+  let currentFacingMode = "environment";
+
   async function startCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       fallbackImg.classList.remove("hidden");
       elStatus.textContent = "不支持摄像头 API";
       return;
     }
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(function (t) { t.stop(); });
+      video.srcObject = null;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
+        video: { facingMode: { ideal: currentFacingMode } },
         audio: false
       });
       video.srcObject = stream;
@@ -646,6 +658,12 @@
       });
     }
   }
+
+  const btnFlip = document.getElementById("btn-flip");
+  btnFlip.addEventListener("click", async function () {
+    currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+    await startCamera();
+  });
 
   function openFailFeedback(reasonText) {
     if (failReason) failReason.textContent = reasonText || "";
