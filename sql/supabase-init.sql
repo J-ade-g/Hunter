@@ -47,6 +47,10 @@ create policy "scores_select_anon"
   to anon
   using (true);
 
+-- 新增字段（已有数据库执行此段即可；全新建库可忽略，建表语句已含这些字段）
+alter table public.scores add column if not exists player_name text;
+alter table public.scores add column if not exists points int not null default 0;
+
 -- 任务数据
 insert into public.tasks (title, keyword, hint)
 values

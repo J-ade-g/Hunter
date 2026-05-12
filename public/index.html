@@ -114,6 +114,16 @@
 </head>
 <body class="bg-background text-on-background min-h-screen flex flex-col font-body-sm overflow-hidden">
 
+  <!-- ========== NICKNAME MODAL ========== -->
+  <div id="modal-nickname" class="view-hidden fixed inset-0 z-[300] bg-black/60 flex items-center justify-center px-6">
+    <div class="bg-white border-4 border-black w-full max-w-sm p-6 flex flex-col gap-4" style="box-shadow: 6px 6px 0 #000">
+      <h2 class="font-headline-md text-headline-md font-bold uppercase tracking-tight">你叫什么？</h2>
+      <p class="font-label-mono text-label-mono text-on-surface-variant uppercase">起个昵称，上排行榜用</p>
+      <input id="nickname-input" type="text" maxlength="12" placeholder="最多12个字" class="border-2 border-black px-3 py-2 font-body-sm text-base outline-none focus:border-black w-full" />
+      <button type="button" id="btn-nickname-confirm" class="bg-black text-white font-label-mono text-label-mono uppercase px-6 py-3 tracking-widest border-2 border-black active:translate-y-1" style="box-shadow: 3px 3px 0 #555">确认出发</button>
+    </div>
+  </div>
+
   <!-- ========== CAMERA ========== -->
   <div id="screen-camera" class="flex flex-col min-h-screen flex-1">
     <header class="bg-white font-headline-md text-headline-md uppercase flex justify-between items-center w-full px-margin-mobile min-h-16 py-2 border-b-4 border-black z-20 relative shrink-0 gap-2 flex-wrap">
@@ -222,7 +232,7 @@
       </div>
     </header>
     <main class="flex-grow flex flex-col items-center pt-8 pb-32 px-margin-mobile max-w-max-width mx-auto w-full overflow-y-auto">
-      <p class="font-label-mono text-label-mono text-on-surface-variant uppercase mb-6 text-center">关键词通关次数 TOP</p>
+      <p class="font-label-mono text-label-mono text-on-surface-variant uppercase mb-6 text-center">玩家累计得分 TOP</p>
       <ol id="rank-list" class="w-full max-w-md border-4 border-primary brutalist-border-thin sketch-box brutalist-shadow divide-y-2 divide-primary bg-surface-container-lowest"></ol>
     </main>
     <nav class="md:hidden flex justify-around items-center w-full py-4 bg-background font-label-mono text-primary fixed bottom-0 z-50 border-t-[3px] border-primary">
@@ -277,6 +287,7 @@
         <span class="material-symbols-outlined text-[80px] text-primary" style="font-variation-settings: 'FILL' 1, 'wght' 700;">check</span>
       </div>
       <h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-unit tracking-tighter uppercase">SUCCESS!</h1>
+      <p id="success-points" class="font-label-mono text-label-mono font-bold text-2xl mb-2 border-2 border-black px-4 py-1" style="box-shadow:3px 3px 0 #000"></p>
       <div class="mb-4 max-w-md w-full mx-auto doodle-border-light bg-surface-container-lowest p-2 sketch-img overflow-hidden border-4 border-black">
         <img id="success-thumb" alt="本局定格" class="w-full max-h-56 object-cover grayscale contrast-110" width="800" height="600">
       </div>
@@ -284,6 +295,14 @@
       <div class="mb-6 max-w-lg w-full doodle-border bg-surface-container-lowest px-6 py-4 transform -rotate-1 text-left">
         <p class="font-label-mono text-label-mono uppercase text-on-surface-variant mb-2">判官评语</p>
         <p id="success-reason" class="font-body-lg text-primary whitespace-pre-wrap break-words"></p>
+      </div>
+      <div class="flex gap-3 flex-wrap justify-center mb-4">
+        <button type="button" id="btn-save-card" class="doodle-border bg-surface-container-lowest text-primary font-label-mono text-label-mono px-6 py-3 uppercase tracking-widest active:translate-y-1 active:translate-x-1 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">download</span>保存卡片
+        </button>
+        <button type="button" id="btn-share-card" class="doodle-border bg-black text-white font-label-mono text-label-mono px-6 py-3 uppercase tracking-widest active:translate-y-1 active:translate-x-1 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">share</span>分享
+        </button>
       </div>
       <button type="button" id="btn-success-back" class="doodle-border bg-surface-container-lowest text-primary font-label-mono text-label-mono px-8 py-4 uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-colors duration-200 active:translate-y-1 active:translate-x-1">
         GO BACK
@@ -347,8 +366,11 @@
   const screenFail = document.getElementById("screen-fail");
   const successReason = document.getElementById("success-reason");
   const successThumb = document.getElementById("success-thumb");
+  const successPoints = document.getElementById("success-points");
   const successKeywordRecap = document.getElementById("success-keyword-recap");
   const btnSuccessBack = document.getElementById("btn-success-back");
+  const btnSaveCard = document.getElementById("btn-save-card");
+  const btnShareCard = document.getElementById("btn-share-card");
   const failReason = document.getElementById("fail-reason");
   const failThumb = document.getElementById("fail-thumb");
   const failKeywordRecap = document.getElementById("fail-keyword-recap");
@@ -358,8 +380,36 @@
   const hdrGlobalTotal = document.getElementById("hdr-global-total");
   const historyList = document.getElementById("history-list");
   const historyEmpty = document.getElementById("history-empty");
+  const modalNickname = document.getElementById("modal-nickname");
+  const nicknameInput = document.getElementById("nickname-input");
+  const btnNicknameConfirm = document.getElementById("btn-nickname-confirm");
 
   const LS_WINS = "treasure_hunt_session_wins";
+  const LS_PLAYER = "treasure_hunt_player_name";
+
+  function getPlayerName() {
+    try { return localStorage.getItem(LS_PLAYER) || ""; } catch { return ""; }
+  }
+  function setPlayerName(name) {
+    try { localStorage.setItem(LS_PLAYER, name); } catch {}
+  }
+
+  function showNicknameModal() {
+    modalNickname.classList.remove("view-hidden");
+    nicknameInput.focus();
+  }
+  function hideNicknameModal() {
+    modalNickname.classList.add("view-hidden");
+  }
+  btnNicknameConfirm.addEventListener("click", function () {
+    const name = nicknameInput.value.trim();
+    if (!name) { nicknameInput.focus(); return; }
+    setPlayerName(name);
+    hideNicknameModal();
+  });
+  nicknameInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") btnNicknameConfirm.click();
+  });
   /** 老虎机滚动用的诱饵词（勿含当前任务词亦可） */
   const KEYWORD_DECOY_POOL = [
     "下班",
@@ -695,7 +745,8 @@
         keyword: String(currentTask.keyword),
         hint: currentTask.hint != null ? String(currentTask.hint) : "",
         imageBase64: imageBase64,
-        taskId: currentTask.id
+        taskId: currentTask.id,
+        playerName: getPlayerName() || null
       };
       const json = JSON.stringify(payload);
       const res = await fetch("/api/identify", {
@@ -716,6 +767,10 @@
           successKeywordRecap.textContent = "任务词 · " + String(currentTask.keyword || "—");
         }
         successReason.textContent = typeof data.reason === "string" ? data.reason : "";
+        if (successPoints) {
+          const pts = typeof data.points === "number" ? data.points : 50;
+          successPoints.textContent = "+" + pts + " 分";
+        }
         bumpSessionWins();
         loadStats();
         screenSuccess.classList.remove("view-hidden");
@@ -740,6 +795,74 @@
     screenFail.classList.add("view-hidden");
   });
 
+  async function buildShareCanvas() {
+    const img = successThumb;
+    const keyword = successKeywordRecap ? successKeywordRecap.textContent : "";
+    const reason = successReason ? successReason.textContent : "";
+    const pts = successPoints ? successPoints.textContent : "";
+    const c = document.createElement("canvas");
+    const W = 600, PAD = 32;
+    const imgH = img.naturalHeight > 0 ? Math.round(img.naturalWidth > 0 ? (img.naturalHeight / img.naturalWidth) * (W - PAD * 2) : 300) : 300;
+    c.width = W;
+    c.height = PAD + imgH + 16 + 40 + 24 + 80 + PAD;
+    const cx = c.getContext("2d");
+    cx.fillStyle = "#fff";
+    cx.fillRect(0, 0, c.width, c.height);
+    cx.strokeStyle = "#000";
+    cx.lineWidth = 4;
+    cx.strokeRect(2, 2, c.width - 4, c.height - 4);
+    if (img.src && img.naturalWidth > 0) {
+      cx.drawImage(img, PAD, PAD, W - PAD * 2, imgH);
+    }
+    let y = PAD + imgH + 24;
+    cx.fillStyle = "#000";
+    cx.font = "bold 22px monospace";
+    cx.textAlign = "center";
+    cx.fillText(keyword, W / 2, y);
+    y += 32;
+    cx.font = "bold 28px monospace";
+    cx.fillText(pts, W / 2, y);
+    y += 36;
+    cx.font = "14px sans-serif";
+    cx.fillStyle = "#444";
+    const words = reason.slice(0, 80);
+    cx.fillText(words, W / 2, y);
+    return c;
+  }
+
+  if (btnSaveCard) {
+    btnSaveCard.addEventListener("click", async function () {
+      try {
+        const c = await buildShareCanvas();
+        const a = document.createElement("a");
+        a.download = "scavenger-" + Date.now() + ".jpg";
+        a.href = c.toDataURL("image/jpeg", 0.92);
+        a.click();
+      } catch (e) {
+        alert("保存失败：" + e.message);
+      }
+    });
+  }
+
+  if (btnShareCard) {
+    btnShareCard.addEventListener("click", async function () {
+      try {
+        const c = await buildShareCanvas();
+        const blob = await new Promise(function (resolve) { c.toBlob(resolve, "image/jpeg", 0.92); });
+        const file = new File([blob], "scavenger.jpg", { type: "image/jpeg" });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: "SCAVENGER HUNT", text: successKeywordRecap ? successKeywordRecap.textContent : "" });
+        } else if (navigator.share) {
+          await navigator.share({ title: "SCAVENGER HUNT", text: (successKeywordRecap ? successKeywordRecap.textContent : "") + " " + (successPoints ? successPoints.textContent : "") });
+        } else {
+          btnSaveCard && btnSaveCard.click();
+        }
+      } catch (e) {
+        if (e.name !== "AbortError") alert("分享失败：" + e.message);
+      }
+    });
+  }
+
   function escapeHtml(s) {
     const d = document.createElement("div");
     d.textContent = s;
@@ -753,9 +876,7 @@
     historyEmpty.classList.add("hidden");
     try {
       const res = await fetch("/api/scores?limit=30", { cache: "no-store" });
-      const data = await res.json().catch(function () {
-        return {};
-      });
+      const data = await res.json().catch(function () { return {}; });
       if (!res.ok) throw new Error(data.error || data.detail || "加载失败");
       const items = data.items || [];
       historyList.innerHTML = "";
@@ -767,35 +888,29 @@
       items.forEach(function (item, idx) {
         const article = document.createElement("article");
         article.className =
-          "bg-surface-container-lowest brutalist-border-thin sketch-box brutalist-shadow p-4 flex flex-col gap-4" +
+          "bg-surface-container-lowest brutalist-border-thin sketch-box brutalist-shadow flex flex-col" +
           (idx % 2 === 1 ? " sm:mt-8" : "");
         const title = item.task_title || item.keyword || "—";
-        const dateStr =
-          item.created_at != null ? new Date(item.created_at).toLocaleDateString("zh-CN") : "";
-        const reason =
-          item.reason != null && String(item.reason).trim() !== ""
-            ? String(item.reason).slice(0, 160)
-            : String(item.keyword || "");
+        const dateStr = item.created_at != null ? new Date(item.created_at).toLocaleDateString("zh-CN") : "";
+        const reason = item.reason != null && String(item.reason).trim() !== ""
+          ? String(item.reason).slice(0, 160) : String(item.keyword || "");
+        const playerStr = item.player_name ? escapeHtml(String(item.player_name)) : "";
+        const ptsStr = item.points != null ? "+" + item.points + " 分" : "";
         article.innerHTML =
-          '<div class="w-full aspect-square border-2 border-primary sketch-img overflow-hidden bg-surface-container flex items-center justify-center p-4">' +
-          '<p class="font-body-sm text-center text-on-surface-variant line-clamp-8">' +
-          escapeHtml(reason) +
-          "</p></div>" +
-          '<div class="flex flex-col gap-1 items-center text-center mt-2">' +
-          '<h2 class="font-headline-md text-[24px] font-bold leading-tight uppercase">' +
-          escapeHtml(title) +
-          "</h2>" +
-          '<p class="font-label-mono text-label-mono text-on-surface-variant">' +
-          (dateStr !== "" ? "FOUND: " + escapeHtml(dateStr) : "") +
-          "</p></div>";
+          '<div class="w-full aspect-square border-b-2 border-primary overflow-hidden bg-gray-100 flex items-center justify-center">' +
+          '<p class="font-body-sm text-center text-on-surface-variant line-clamp-8 p-4">' + escapeHtml(reason) + "</p></div>" +
+          '<div class="p-4 flex flex-col gap-1 items-center text-center">' +
+          '<h2 class="font-headline-md text-[22px] font-bold leading-tight uppercase">' + escapeHtml(title) + "</h2>" +
+          (ptsStr ? '<span class="font-label-mono text-label-mono font-bold text-lg">' + escapeHtml(ptsStr) + "</span>" : "") +
+          (playerStr ? '<span class="font-label-mono text-label-mono text-on-surface-variant text-xs">' + playerStr + "</span>" : "") +
+          '<p class="font-label-mono text-label-mono text-on-surface-variant text-xs">' +
+          (dateStr !== "" ? "FOUND: " + escapeHtml(dateStr) : "") + "</p></div>";
         historyList.appendChild(article);
       });
     } catch (e) {
       historyEmpty.classList.add("hidden");
       historyList.innerHTML =
-        '<p class="col-span-full text-center font-label-mono text-error">' +
-        escapeHtml(e.message || String(e)) +
-        "</p>";
+        '<p class="col-span-full text-center font-label-mono text-error">' + escapeHtml(e.message || String(e)) + "</p>";
     }
   }
 
@@ -803,11 +918,10 @@
     if (!rankList) return;
     rankList.innerHTML =
       '<li class="px-4 py-4 text-center font-label-mono text-on-surface-variant">加载中…</li>';
+    const myName = getPlayerName();
     try {
-      const res = await fetch("/api/leaderboard?limit=15", { cache: "no-store" });
-      const data = await res.json().catch(function () {
-        return {};
-      });
+      const res = await fetch("/api/leaderboard?limit=20", { cache: "no-store" });
+      const data = await res.json().catch(function () { return {}; });
       if (!res.ok) throw new Error(data.error || data.detail || "读取失败");
       const items = data.items || [];
       rankList.innerHTML = "";
@@ -817,26 +931,21 @@
         return;
       }
       items.forEach(function (row, i) {
+        const isMe = myName && row.player_name === myName;
         const li = document.createElement("li");
         li.className =
-          "px-4 py-3 flex justify-between items-baseline gap-3 font-body-sm border-b-2 border-primary/10";
+          "px-4 py-3 flex justify-between items-baseline gap-3 font-body-sm border-b-2 border-primary/10" +
+          (isMe ? " bg-black text-white" : "");
+        const medal = i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : "";
         li.innerHTML =
-          '<span class="font-label-mono text-label-mono text-on-surface-variant w-8 shrink-0">' +
-          (i + 1) +
-          "</span>" +
-          '<span class="text-left flex-1 min-w-0 break-words">' +
-          escapeHtml(String(row.keyword || "")) +
-          "</span>" +
-          '<span class="font-label-mono text-label-mono font-bold shrink-0">' +
-          row.count +
-          " 次</span>";
+          '<span class="font-label-mono text-label-mono w-8 shrink-0 ' + (isMe ? "text-white" : "text-on-surface-variant") + '">' + (i + 1) + "</span>" +
+          '<span class="text-left flex-1 min-w-0 break-words font-bold">' + medal + escapeHtml(String(row.player_name || "")) + (isMe ? " ← 你" : "") + "</span>" +
+          '<span class="font-label-mono text-label-mono font-bold shrink-0">' + row.total_points + " 分</span>";
         rankList.appendChild(li);
       });
     } catch (e) {
       rankList.innerHTML =
-        '<li class="px-4 py-4 text-center font-label-mono text-error">' +
-        escapeHtml(e.message || String(e)) +
-        "</li>";
+        '<li class="px-4 py-4 text-center font-label-mono text-error">' + escapeHtml(e.message || String(e)) + "</li>";
     }
   }
 
@@ -905,6 +1014,7 @@
   });
 
   whenDomReady(function () {
+    if (!getPlayerName()) showNicknameModal();
     loadTask();
     startCamera();
     loadScores();

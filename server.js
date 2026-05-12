@@ -98,7 +98,7 @@ app.get("/api/scores", async (req, res) => {
     const supabase = getSupabase();
     const { data: rows, error } = await supabase
       .from("scores")
-      .select("id, keyword, reason, created_at, task_id")
+      .select("id, keyword, reason, created_at, task_id, player_name, points")
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -128,6 +128,8 @@ app.get("/api/scores", async (req, res) => {
       created_at: row.created_at,
       task_id: row.task_id,
       task_title: row.task_id != null ? taskTitleById[row.task_id] ?? null : null,
+      player_name: row.player_name ?? null,
+      points: row.points ?? null,
     }));
 
     return res.json({ items });
@@ -166,24 +168,28 @@ app.get("/api/leaderboard", async (req, res) => {
   const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(Math.floor(rawLimit), 1), 50) : 20;
   try {
     const supabase = getSupabase();
-    const { data, error } = await supabase.from("scores").select("keyword").limit(5000);
+    const { data, error } = await supabase
+      .from("scores")
+      .select("player_name, points")
+      .not("player_name", "is", null)
+      .limit(5000);
 
     if (error) {
       console.error(error);
       return res.status(500).json({ error: "读取排行榜失败", detail: error.message });
     }
 
-    const counts = Object.create(null);
+    const totals = Object.create(null);
     for (const row of data || []) {
-      const k = row.keyword != null ? String(row.keyword) : "";
-      if (!k) continue;
-      counts[k] = (counts[k] || 0) + 1;
+      const name = row.player_name != null ? String(row.player_name).trim() : "";
+      if (!name) continue;
+      totals[name] = (totals[name] || 0) + (Number(row.points) || 0);
     }
 
-    const sorted = Object.entries(counts)
+    const sorted = Object.entries(totals)
       .sort((a, b) => b[1] - a[1])
       .slice(0, limit)
-      .map(([keyword, count]) => ({ keyword, count }));
+      .map(([player_name, total_points]) => ({ player_name, total_points }));
 
     return res.json({ items: sorted });
   } catch (err) {
@@ -221,6 +227,7 @@ app.post("/api/identify", async (req, res) => {
   const hint = typeof body.hint === "string" ? body.hint.trim() : "";
   const imageBase64 = body.imageBase64;
   const taskId = body.taskId;
+  const playerName = typeof body.playerName === "string" ? body.playerName.trim().slice(0, 20) : null;
 
   if (!keyword) {
     return res.status(400).json({ error: "缺少或无效的 keyword" });
@@ -252,9 +259,16 @@ app.post("/api/identify", async (req, res) => {
 match: true 时：用网络流行语热情夸奖，说出你发现的那个联系，语气要像发现宝藏一样兴奋。
 例如："绝了！这个低头的姿势完美诠释了'屁股'——坐姿即正义，打工人的脊梁就是这么弯的！"
 
+同时根据创意程度给出 points（整数 1-100）：
+- 1-30：字面直接，没什么创意
+- 31-60：有一定联系，稍有想象力
+- 61-85：联系巧妙，让人眼前一亮
+- 86-100：天才创意，令人拍案叫绝
+
 只有照片完全黑屏/白屏/模糊到看不出任何内容时才 match: false，并友好提示重拍。
 
-只返回 JSON：{"match": true/false, "reason": "点评内容"}`;
+只返回 JSON：{"match": true/false, "reason": "点评内容", "points": 整数}`;
+
 
   try {
     const text = await callZhipu(prompt, mimeType, data);
@@ -273,11 +287,15 @@ match: true 时：用网络流行语热情夸奖，说出你发现的那个联�
     }
 
     if (parsed && parsed.match === true) {
+      const points = (typeof parsed.points === "number" && parsed.points >= 1 && parsed.points <= 100)
+        ? Math.round(parsed.points) : 50;
       try {
         const supabase = getSupabase();
         const row = {
           keyword: String(keyword),
           reason: typeof parsed.reason === "string" ? parsed.reason : null,
+          points,
+          player_name: playerName || null,
         };
         if (taskId && typeof taskId === "string" && UUID_RE.test(taskId.trim())) {
           row.task_id = taskId.trim();
@@ -285,15 +303,15 @@ match: true 时：用网络流行语热情夸奖，说出你发现的那个联�
         const { error: insertError } = await supabase.from("scores").insert(row);
         if (insertError) {
           console.error("scores 写入失败:", insertError);
-          return res.json({ ...parsed, scoreSaved: false, scoreError: insertError.message });
+          return res.json({ ...parsed, points, scoreSaved: false, scoreError: insertError.message });
         }
-        return res.json({ ...parsed, scoreSaved: true });
+        return res.json({ ...parsed, points, scoreSaved: true });
       } catch (e) {
         if (e.code === "SUPABASE_NOT_CONFIGURED") {
-          return res.json({ ...parsed, scoreSaved: false, scoreError: e.message });
+          return res.json({ ...parsed, points, scoreSaved: false, scoreError: e.message });
         }
         console.error(e);
-        return res.json({ ...parsed, scoreSaved: false, scoreError: e.message || "写入得分失败" });
+        return res.json({ ...parsed, points, scoreSaved: false, scoreError: e.message || "写入得分失败" });
       }
     }
 
