@@ -180,16 +180,22 @@ app.get("/api/leaderboard", async (req, res) => {
     }
 
     const totals = Object.create(null);
+    const counts = Object.create(null);
     for (const row of data || []) {
       const name = row.player_name != null ? String(row.player_name).trim() : "";
       if (!name) continue;
       totals[name] = (totals[name] || 0) + (Number(row.points) || 0);
+      counts[name] = (counts[name] || 0) + 1;
     }
 
     const sorted = Object.entries(totals)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit)
-      .map(([player_name, total_points]) => ({ player_name, total_points }));
+      .map(([player_name, total]) => ({
+        player_name,
+        avg_points: Math.round(total / counts[player_name]),
+        match_count: counts[player_name],
+      }))
+      .sort((a, b) => b.avg_points - a.avg_points)
+      .slice(0, limit);
 
     return res.json({ items: sorted });
   } catch (err) {

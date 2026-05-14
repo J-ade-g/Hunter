@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scavenger Hunt Camera</title>
+  <title>词拍</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;family=Hanken+Grotesk:wght@400&amp;family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
@@ -129,7 +129,7 @@
     <header class="bg-white font-headline-md text-headline-md uppercase flex justify-between items-center w-full px-margin-mobile min-h-16 py-2 border-b-4 border-black z-20 relative shrink-0 gap-2 flex-wrap">
       <div class="flex items-center gap-2 min-w-0">
         <span class="material-symbols-outlined text-primary text-3xl font-bold shrink-0" style="font-variation-settings: 'FILL' 0, 'wght' 700;">draw</span>
-        <span class="font-headline-md text-headline-md font-bold text-primary tracking-tight hidden sm:inline">SCAVENGER HUNT</span>
+        <span class="font-headline-md text-headline-md font-bold text-primary tracking-tight hidden sm:inline">词拍</span>
       </div>
       <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
         <span id="hdr-session-wins" class="font-label-mono text-[10px] sm:text-[11px] font-bold tracking-wide border-2 border-black px-1.5 py-0.5 sketch-border-thin bg-white whitespace-nowrap">本地胜 0</span>
@@ -230,7 +230,7 @@
       </div>
     </header>
     <main class="flex-grow flex flex-col items-center pt-8 pb-32 px-margin-mobile max-w-max-width mx-auto w-full overflow-y-auto">
-      <p class="font-label-mono text-label-mono text-on-surface-variant uppercase mb-6 text-center">玩家累计得分 TOP</p>
+      <p class="font-label-mono text-label-mono text-on-surface-variant uppercase mb-6 text-center">玩家平均分 TOP</p>
       <ol id="rank-list" class="w-full max-w-md border-4 border-primary brutalist-border-thin sketch-box brutalist-shadow divide-y-2 divide-primary bg-surface-container-lowest"></ol>
     </main>
     <nav class="md:hidden flex justify-around items-center w-full py-4 bg-background font-label-mono text-primary fixed bottom-0 z-50 border-t-[3px] border-primary">
@@ -251,7 +251,7 @@
     <header class="bg-background text-primary font-headline-md text-headline-md uppercase flex justify-between items-center w-full px-margin-mobile h-16 shrink-0 z-40 relative brutalist-shadow border-b-[3px] border-primary">
       <div class="flex items-center gap-unit">
         <span class="material-symbols-outlined text-[32px] font-bold">draw</span>
-        <span class="font-headline-md text-headline-md font-bold tracking-tight">SCAVENGER HUNT</span>
+        <span class="font-headline-md text-headline-md font-bold tracking-tight">词拍</span>
       </div>
     </header>
     <main class="flex-grow flex flex-col items-center pt-12 pb-32 px-margin-mobile max-w-max-width mx-auto w-full overflow-y-auto">
@@ -400,6 +400,8 @@
     if (!name) { nicknameInput.focus(); return; }
     setPlayerName(name);
     hideNicknameModal();
+    loadTask();
+    startCamera();
   });
   nicknameInput.addEventListener("keydown", function (e) {
     if (e.key === "Enter") btnNicknameConfirm.click();
@@ -867,7 +869,7 @@
     cx.font = "18px monospace";
     cx.fillStyle = "#aaa";
     cx.textAlign = "right";
-    cx.fillText("SCAVENGER HUNT", W - PAD, totalH - 14);
+    cx.fillText("词拍", W - PAD, totalH - 14);
 
     return c;
   }
@@ -963,7 +965,8 @@
         li.innerHTML =
           '<span class="font-label-mono text-label-mono w-8 shrink-0 ' + (isMe ? "text-white" : "text-on-surface-variant") + '">' + (i + 1) + "</span>" +
           '<span class="text-left flex-1 min-w-0 break-words font-bold">' + medal + escapeHtml(String(row.player_name || "")) + (isMe ? " ← 你" : "") + "</span>" +
-          '<span class="font-label-mono text-label-mono font-bold shrink-0">' + row.total_points + " 分</span>";
+          '<span class="font-label-mono text-label-mono font-bold shrink-0">' + row.avg_points + " 分</span>" +
+          '<span class="font-label-mono text-[10px] text-on-surface-variant shrink-0 ml-1">×' + row.match_count + "</span>";
         rankList.appendChild(li);
       });
     } catch (e) {
@@ -1037,11 +1040,14 @@
   });
 
   whenDomReady(function () {
-    if (!getPlayerName()) showNicknameModal();
-    loadTask();
-    startCamera();
-    loadScores();
     loadStats();
+    loadScores();
+    if (!getPlayerName()) {
+      showNicknameModal();
+    } else {
+      loadTask();
+      startCamera();
+    }
   });
 })();
   </script>
